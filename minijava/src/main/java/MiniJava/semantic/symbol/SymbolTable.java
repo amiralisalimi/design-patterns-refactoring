@@ -24,6 +24,10 @@ public class SymbolTable {
         keyWords.put("false", new Address(0, varType.Bool, TypeAddress.Imidiate));
     }
 
+    public boolean fieldExists(String fieldName, String className) {
+        return klasses.get(className).Fields.containsKey(fieldName);
+    }
+
     public void setLastType(SymbolType type) {
         lastType = type;
     }

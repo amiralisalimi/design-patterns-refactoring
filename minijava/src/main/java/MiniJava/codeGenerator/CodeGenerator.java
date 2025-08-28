@@ -431,7 +431,13 @@ public class CodeGenerator {
 
     public void defField() {
         ss.pop();
-        symbolTable.addField(symbolStack.pop(), symbolStack.peek());
+        String fieldName = symbolStack.pop();
+        String className = symbolStack.peek();
+        if (symbolTable.fieldExists(fieldName, className)) {
+            ErrorHandler.printError("This field already defined");
+        } else {
+            symbolTable.addField(fieldName, className);
+        }
     }
 
     public void defVar() {
