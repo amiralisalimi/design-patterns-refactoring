@@ -5,17 +5,17 @@ package MiniJava.semantic.symbol;
  */
 
 public class Symbol {
-    public SymbolType type;
-    public int address;
+	public SymbolType type;
+	public int address;
 
-    public Symbol(SymbolType type, int address) {
-        this.type = type;
-        this.address = address;
-    }
+	public Symbol(SymbolType type, int address) {
+		this.type = type;
+		this.address = address;
+	}
 }
 
 class NullSymbol extends Symbol {
-    public NullSymbol() {
-        super(SymbolType.Int, -1);
-    }
+	public NullSymbol() {
+		super(SymbolType.Int, -1);
+	}
 }
