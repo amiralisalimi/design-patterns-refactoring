@@ -8,6 +8,7 @@ public class ShutdownState implements EnergyState {
 
     @Override
     public String getStatus() {
-        return null;
+        return "System is shut down.";
     }
 }
+

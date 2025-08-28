@@ -3,11 +3,12 @@ package com.building.energy.state;
 public class EcoState implements EnergyState {
     @Override
     public int getEnergyConsumption() {
-        return 0;
+        return 40;
     }
 
     @Override
     public String getStatus() {
-        return null;
+        return "System is in eco mode.";
     }
 }
+

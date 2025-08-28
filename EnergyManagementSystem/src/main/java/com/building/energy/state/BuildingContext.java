@@ -14,4 +14,13 @@ public class BuildingContext {
     public EnergyState getCurrentState() {
         return currentState;
     }
+
+    public int getCurrentConsumption() {
+        return currentState.getEnergyConsumption();
+    }
+
+    public String showStatus() {
+        return currentState.getStatus();
+    }
 }
+
