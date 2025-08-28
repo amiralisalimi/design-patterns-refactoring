@@ -13,3 +13,9 @@ public class Symbol {
         this.address = address;
     }
 }
+
+class NullSymbol extends Symbol {
+    public NullSymbol() {
+        super(SymbolType.Int, -1);
+    }
+}
