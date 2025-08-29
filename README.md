@@ -207,4 +207,124 @@ CostStrategy اینترفیس محاسبه هزینه است که متد calcula
 
 <div dir="rtl">
 
+---
+
+### 1. **Long Method (متد طولانی)**
+- **فایل**: `GUIMethod.java`, `GUIClass.java`, `GUIList.java`, و غیره
+- **توضیح**: بسیاری از متدها، مانند سازنده‌ها (`GUIMethod`, `GUIClass`, `GUIValueType`) یا متد `run`، حاوی کدهای طولانی و پیچیده هستند که چندین مسئولیت را در خود جای داده‌اند (مانند راه‌اندازی UI، مدیریت رویدادها، و به‌روزرسانی رابط کاربری). این امر خوانایی و نگهداری کد را کاهش می‌دهد.
+- **پیشنهاد بهبود**:
+    - باید متدهای طولانی را به متدهای کوچک‌تر و متمرکز تقسیم کرد. به عنوان مثال، در سازنده `GUIMethod`، می‌توان کد مربوط به تنظیم UI و افزودن DocumentListener را به متدهای جداگانه منتقل کرد.
+    - باید از الگوی **Single Responsibility Principle (SRP)** استفاده کرد تا هر متد فقط یک کار مشخص انجام دهد.
+
+---
+
+### 2. **Duplicated Code (کد تکراری)**
+- **فایل‌ها**: `GUIMethod.java`, `GUIConstructor.java`, `GUIAttribute.java`, `GUIValueType.java`, `GUIClass.java`
+- **توضیح**: کدهای مربوط به تنظیم `JPanel`، افزودن `DocumentListener` برای `JTextField`، و اجرای حلقه‌های `run` در این کلاس‌ها بسیار مشابه هستند. به عنوان مثال، متد `run` در این کلاس‌ها ساختار مشابهی دارد که شامل به‌روزرسانی UI و استفاده از `Thread.sleep` است.
+- **پیشنهاد بهبود**:
+    - باید کدهای تکراری را به یک کلاس پایه یا یک متد ابزار (utility method) منتقل کرد. به عنوان مثال، می‌توان یک کلاس پایه انتزاعی برای `GUIListItem` ایجاد کرد که منطق مشترک `run` یا مدیریت UI را پیاده‌سازی کند.
+    - باید از الگوهای طراحی مانند **Template Method** برای مدیریت رفتارهای مشترک استفاده کرد.
+
+---
+
+### 3. **Magic Numbers (اعداد جادویی)**
+- **فایل‌ها**: `GUIMethod.java`, `GUIConstructor.java`, `GUIAttribute.java`, `GUIValueType.java`, `GUIList.java`, `GUIDiagram.java`
+- **توضیح**: استفاده از عدد ثابت `399` یا `499` در متدهای `Thread.sleep` بدون توضیح یا مستندسازی دلیل این مقادیر. این اعداد خوانایی کد را کاهش می‌دهند و تغییر آن‌ها در آینده دشوار است.
+- **پیشنهاد بهبود**:
+    - باید این مقادیر را به ثابت‌های معنی‌دار (constants) تبدیل کرد. به عنوان مثال:
+      ```java
+      private static final int UI_UPDATE_INTERVAL_MS = 400;
+      Thread.sleep(UI_UPDATE_INTERVAL_MS);
+      ```
+    - همچنین باید دلیل انتخاب این مقادیر را در مستندات یا نظرات توضیح داد.
+
+---
+
+### 4. **Thread Misuse (استفاده نادرست از نخ‌ها)**
+- **فایل‌ها**: `GUIMethod.java`, `GUIConstructor.java`, `GUIAttribute.java`, `GUIValueType.java`, `GUIClass.java`, `GUIDiagram.java`, `GUIList.java`
+- **توضیح**: این کلاس‌ها از `Thread` برای به‌روزرسانی مداوم UI استفاده می‌کنند، که شامل حلقه‌های بی‌پایان با `Thread.sleep` است. این روش غیربهینه است و می‌تواند باعث مشکلات عملکردی یا تداخل در Swing (که یک کتابخانه تک‌نخی است) شود. به‌روزرسانی UI باید در نخ EDT (Event Dispatch Thread) انجام شود.
+- **پیشنهاد بهبود**:
+    - باید به جای استفاده از `Thread` و `Thread.sleep`، از `javax.swing.Timer` برای به‌روزرسانی‌های دوره‌ای UI استفاده کرد. این تایمر به طور خودکار در EDT اجرا می‌شود.
+    - مثال:
+      ```java
+      Timer timer = new Timer(400, e -> panel.updateUI());
+      timer.start();
+      ```
+    - همچنین باید از مدل‌های رویدادمحور Swing برای مدیریت تغییرات UI استفاده کرد.
+
+---
+
+### 5. **Improper Error Handling (مدیریت نادرست خطاها)**
+- **فایل‌ها**: `GUIMethod.java`, `GUIAttribute.java`, `GUIValueType.java`, `GUIClass.java`, `GUITextFieldSetter.java`
+- **توضیح**: در این فایل‌ها، استثناها (مانند `NoSuchMethodException` یا `InterruptedException`) صرفاً چاپ می‌شوند (`e.printStackTrace()`) و هیچ اقدام اصلاحی انجام نمی‌شود. این روش می‌تواند باعث رفتار غیرقابل پیش‌بینی برنامه شود.
+- **پیشنهاد بهبود**:
+    - باید استثناها را به طور مناسب مدیریت کرد، مثلاً با نمایش پیام خطا به کاربر یا بازگرداندن برنامه به حالت پایدار.
+    - باید از logging frameworkهایی مانند SLF4J یا Log4j به جای `printStackTrace` استفاده کرد.
+    - مثال:
+      ```java
+      try {
+          nameGetter.getDocument().addDocumentListener(...);
+      } catch (NoSuchMethodException e) {
+          logger.error("Failed to add DocumentListener for nameGetter", e);
+          // اقدام اصلاحی، مانند نمایش پیام خطا
+      }
+      ```
+
+---
+
+### 6. **Feature Envy (حسادت به ویژگی‌ها)**
+- **فایل**: `GUITextFieldSetter.java`
+- **توضیح**: کلاس `GUITextFieldSetter` بیش از حد به متدهای `setName` یا `setTypeName` کلاس‌های دیگر وابسته است و از طریق reflection به آن‌ها دسترسی پیدا می‌کند. این نشان‌دهنده حسادت این کلاس به داده‌ها و رفتارهای کلاس‌های دیگر است.
+- **پیشنهاد بهبود**:
+    - باید منطق بررسی و تنظیم نام را به خود کلاس‌های `GUIAttribute`, `GUIMethod`, و غیره منتقل کرد.
+    - باید از یک رابط (interface) یا الگوی طراحی مانند **Observer** برای مدیریت تغییرات در `JTextField` استفاده کرد، به جای استفاده از reflection که پیچیدگی و خطا را افزایش می‌دهد.
+
+---
+
+### 7. **Primitive Obsession (وسواس به داده‌های اولیه)**
+- **فایل‌ها**: `GUIValueType.java`, `GUIAttribute.java`, `GUIMethod.java`
+- **توضیح**: استفاده از رشته‌های خام (مانند `"method"`, `"constructor"`, `"name"`) به عنوان مقادیر اولیه یا عنوان‌ها در کلاس‌ها. این می‌تواند باعث خطاهای تایپی یا مشکلات نگهداری شود.
+- **پیشنهاد بهبود**:
+    - باید از ثابت‌ها (constants) یا نوع‌های شمارش‌شده (enum) برای این مقادیر استفاده کرد. به عنوان مثال:
+      ```java
+      public enum ComponentType {
+          METHOD("method"),
+          CONSTRUCTOR("constructor"),
+          ATTRIBUTE("attribute");
+          
+          private final String displayName;
+          ComponentType(String displayName) { this.displayName = displayName; }
+          public String getDisplayName() { return displayName; }
+      }
+      ```
+    - باید این مقادیر را در یک مکان مرکزی تعریف کرد تا تغییرات آسان‌تر شود.
+
+---
+
+### 8. **Large Class (کلاس بزرگ)**
+- **فایل**: `GUIClass.java`
+- **توضیح**: کلاس `GUIClass` مسئولیت‌های زیادی را بر عهده دارد، از جمله مدیریت UI، لیست‌های ویژگی‌ها، متدها، سازنده‌ها، و حتی ذخیره‌سازی XML. این کلاس بیش از حد بزرگ و پیچیده است.
+- **پیشنهاد بهبود**:
+    - باید مسئولیت‌های مختلف را به کلاس‌های جداگانه تقسیم کرد. به عنوان مثال، منطق XML را به یک کلاس جداگانه مانند `XMLSerializer` منتقل کرد.
+    - باید از الگوی **Facade** یا **Mediator** برای هماهنگی بین اجزای مختلف استفاده کرد.
+
+---
+
+### 9. **Inappropriate Intimacy (صمیمیت نامناسب)**
+- **فایل‌ها**: `GUIClass.java`, `GUITextFieldSetter.java`
+- **توضیح**: کلاس `GUITextFieldSetter` از طریق reflection به متدهای داخلی کلاس‌های دیگر (مانند `setName` یا `setSuperClass`) دسترسی دارد، که نقض اصل کپسوله‌سازی است. همچنین، `GUIClass` به صورت مستقیم به `Main.document` و `Main.transformer` دسترسی دارد.
+- **پیشنهاد بهبود**:
+    - باید از متدهای عمومی (public) یا رابط‌ها برای تعامل با کلاس‌ها استفاده کرد و از reflection اجتناب کرد.
+    - باید وابستگی به `Main` را حذف کرد و از تزریق وابستگی (Dependency Injection) برای ارائه اشیاء مورد نیاز استفاده کرد.
+
+---
+
+### 10. **Dead Code (کد مرده)**
+- **فایل**: `DiagramGetter.java`
+- **توضیح**: خط `Graphics graphics = new DebugGraphics();` در متد `init` استفاده نمی‌شود و به نظر می‌رسد کد مرده باشد. همچنین، برخی متدهای دیگر (مانند `setLayout` در `GUIList.java`) ممکن است به ندرت یا هرگز استفاده نشوند.
+- **پیشنهاد بهبود**:
+    - باید کدهای استفاده‌نشده را حذف کرد تا خوانایی و نگهداری کد بهبود یابد.
+    - باید از ابزارهای تحلیل کد مانند SonarQube برای شناسایی و حذف کدهای مرده استفاده کرد.
+
+---
 </div>
